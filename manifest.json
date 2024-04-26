@@ -6,6 +6,10 @@
     "permissions": [
       "webRequest",
       "webRequestBlocking",
+      "cookies",
+      "activeTab",
+      "tabs",
+      "storage",
       "<all_urls>"
     ],
     "background": {

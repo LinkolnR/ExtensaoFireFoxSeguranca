@@ -21,11 +21,54 @@
   </style>
 </head>
 <body>
-  <h1>Sites de Terceiros</h1>
-  <ul id="siteList">
-    <!-- Os sites capturados serão adicionados aqui dinamicamente -->
-  </ul>
 
+  <title>Seções Ocultáveis</title>
+  <style>
+    .secao {
+      margin-bottom: 10px;
+      padding: 10px;
+      background-color: #f0f0f0;
+      cursor: pointer;
+    }
+    .conteudo {
+      display: none;
+    }
+  </style>
+  </head>
+  
+  <div class="secao" id="secao1">Conexão com sites de terceiros</div>
+  <div id="conteudo1" class="conteudo">
+    <h1>Sites de Terceiros</h1>
+    <ol id="siteList">
+      <!-- Os sites capturados serão adicionados aqui dinamicamente -->
+    </ol>
+  </div>
+  
+  <div class="secao" id="secao2">Cookies</div>
+  <div id="conteudo2" class="conteudo">
+    <p>Conteúdo da seção 2</p>
+    <p id ="cookieNum"> </p>
+    <button id="countButton">Contar Cookies</button>
+    <p id="cookieCount">Contagem de Cookies: </p>
+    
+  </div>
+  
+  <div class="secao" id="secao3">Local Storage</div>
+  <div id="conteudo3" class="conteudo">
+    <p>Conteúdo da seção 3</p>
+    <div id="numeroLocalStorage">Número de itens salvos no localstorage : </div>
+    <div id="numeroSessionStorage">Número de itens salvos no sessionstorage : </div>
+
+
+
+  </div>
+  
+  <script src="toggle.js"></script>
   <script src="popup.js"></script>
+  <script src="localstorage.js"></script>
+
+
+
+
 </body>
 </html>
