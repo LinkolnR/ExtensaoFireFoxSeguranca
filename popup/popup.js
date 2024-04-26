@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
 //     }
 //   });
 // });
-
+//
 document.addEventListener('DOMContentLoaded', function() {
   browser.tabs.query({active: true, currentWindow: true}, function(tabs) {
     browser.tabs.executeScript(tabs[0].id, {
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
           url: window.location.href
         })`
       }, function(results) {
-        console.log(results);
+        console.log(results[0].url);
       });
   });
 });
