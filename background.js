@@ -50,6 +50,7 @@ browser.webRequest.onBeforeRequest.addListener(
 browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   // Se a mensagem for para obter os sites de terceiros capturados, responde com a lista de sites
   if (request.action == "getCapturedSites") {
+    console.log(thirdPartySites )
     sendResponse({sites: thirdPartySites});
   }else if (request.action == "getCookies"){
     rowser.tabs.query({active: true, currentWindow: true}, function(tabs) {
@@ -88,12 +89,9 @@ function getUrl() {
   });
 }
 
-// function getUrl() {
-//   // script to getting all cookies
-//   var urlAtual = window.location.href;
 
-// // Exibe a URL no console
-//     console.log("URL da aba atual:", urlAtual);
-//     console.log('teste')
-//      console.log(results);
-// }
+browser.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+    thirdPartySites = [];
+    console.log('ioljadsbcghyjdsgvghujfvbewdhjfbewghjfvdsghjvfdsghjkbfhujkb')
+    console.log(thirdPartySites)
+});
