@@ -1,8 +1,8 @@
 // Array para armazenar os sites de terceiros capturados
-var thirdPartySites = [];
+var thirdPartySites = new Set();
 var cookies ;
 var localStorage = {};
-
+var urlPrincipal;
 
 function checkStorage(tabId, sendResponse) {
   browser.tabs.executeScript(tabId, {
@@ -32,26 +32,68 @@ function getCookies(tabId, sendResponse) {
 }
 
 
-// Escuta todas as requisições
+// Variável para controlar se é necessário limpar o conjunto thirdPartySites
+let limpar = false;
+
+// Ouvinte de evento para quando uma nova guia é ativada
+browser.tabs.onActivated.addListener(function(activeInfo) {
+    // Define a flag para limpar o conjunto
+    limpar = true;
+});
+
+// Ouvinte de evento para antes de cada requisição
 browser.webRequest.onBeforeRequest.addListener(
-  async function(details) {
-    var url = await getUrl()
-    // Verifica se o domínio da requisição não é do próprio site
-    if (!details.url.startsWith(url)){
-      // Adiciona o site de terceiros ao array
-    thirdPartySites.push(details.url);
-    }
-  },
-  {urls: ["<all_urls>"]},
-  ["blocking"]
+    async function(details) {
+        // Obter a URL da aba atual
+        var url = await getUrl();
+        // Limpa o conjunto thirdPartySites se a flag limpar estiver definida
+        if (limpar) {
+            thirdPartySites.clear();
+            limpar = false; // Redefine a flag para false após a limpeza
+        }
+
+        // Verifica se o domínio da requisição é o mesmo que o da aba atual
+        if (details.url === url) {
+            console.log("A URL da requisição é a mesma que a da aba atual: ", details.url);
+        } else if (!details.url.startsWith(url)) {
+            // Adiciona o site de terceiros ao conjunto
+            thirdPartySites.add(details.url);
+        }
+    },
+    { urls: ["<all_urls>"] },
+    ["blocking"]
 );
+
+
+function filtrarSet(set, urlPrincipal) {
+  const resultado = new Set();
+  
+  // Itera sobre os elementos do conjunto
+  for (const url of set) {
+    console.log ("FILTRAR SET")
+    console.log(urlPrincipal)
+    console.log(url)
+    console.log(url.startsWith(urlPrincipal))
+      // Verifica se a URL não começa com a URL principal
+      if (!url.startsWith(urlPrincipal)) {
+          // Adiciona a URL ao conjunto resultado
+          resultado.add(url);
+      }
+  }
+  
+  return resultado;
+}
+
 
 // Listener para mensagens do popup.js
 browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   // Se a mensagem for para obter os sites de terceiros capturados, responde com a lista de sites
   if (request.action == "getCapturedSites") {
     console.log(thirdPartySites )
-    sendResponse({sites: thirdPartySites});
+    newurl = trataUrl(urlPrincipal)
+    resultado = filtrarSet(thirdPartySites, newurl);
+    sendResponse({sites: resultado});
+    limpar = true;
   }else if (request.action == "getCookies"){
     rowser.tabs.query({active: true, currentWindow: true}, function(tabs) {
       if (tabs.length > 0) {
@@ -76,22 +118,35 @@ browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 });
 
 
+
 function getUrl() {
-  return new Promise(function(resolve, reject) {
     browser.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-      if (tabs && tabs.length > 0) {
-        var urlAtual = tabs[0].url;
-        resolve(urlAtual);
-      } else {
-        reject("Não foi possível obter a URL da guia atual.");
-      }
+        if (tabs.length > 0) {
+            // Retorna a URL da aba ativa
+            urlPrincipal = tabs[0].url;
+        } else {
+            reject(new Error('Não foi possível obter a URL da aba ativa'));
+        }
     });
-  });
+};
+
+
+
+function trataUrl(url) {
+  // Encontra a posição de "://"
+  const indiceDoisPontosBarra = url.indexOf("://");
+
+  // Se "://" for encontrado
+  if (indiceDoisPontosBarra !== -1) {
+    // Encontra a posição da primeira barra após "://"
+    const indiceBarra = url.indexOf("/", indiceDoisPontosBarra + 3);
+
+    // Extrai a parte da string até a primeira barra após "://"
+    const parteUrl = indiceBarra !== -1 ? url.substring(0, indiceBarra) : url;
+
+    console.log(parteUrl); // Output: "https://chat.openai.com"
+    return parteUrl;
+  } else {
+    console.log("Formato de URL inválido");
+  }
 }
-
-
-browser.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-    thirdPartySites = [];
-    console.log('ioljadsbcghyjdsgvghujfvbewdhjfbewghjfvdsghjvfdsghjkbfhujkb')
-    console.log(thirdPartySites)
-});
