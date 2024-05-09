@@ -18,29 +18,41 @@ function checkStorage(tabId, sendResponse) {
     }
   });
 }
+function getCookies(url, callback) {
+  chrome.cookies.getAll({}, function(cookies) {
+    const cookieDetails = {
+      total: cookies.length,
+      firstParty: 0,
+      thirdParty: 0,
+      sessionCookies: 0,
+      persistentCookies: 0
+    };
 
-function getCookies(tabId, sendResponse) {
-  browser.tabs.executeScript(tabId, {
-      code: `({
-        url: window.location.href
-      })`
-    }, function(results) {
-      console.log(results);
+    cookies.forEach(cookie => {
+      if (cookie.domain === url) {
+        cookieDetails.firstParty++;
+      } else {
+        cookieDetails.thirdParty++;
+      }
+
+      if ("session" in cookie && cookie.session) {
+        cookieDetails.sessionCookies++;
+      } else {
+        cookieDetails.persistentCookies++;
+      }
     });
-    
-    
-}
 
+    callback(cookieDetails);
+  });
+}
 
 // Variável para controlar se é necessário limpar o conjunto thirdPartySites
 let limpar = false;
-
 // Ouvinte de evento para quando uma nova guia é ativada
 browser.tabs.onActivated.addListener(function(activeInfo) {
     // Define a flag para limpar o conjunto
     limpar = true;
 });
-
 // Ouvinte de evento para antes de cada requisição
 browser.webRequest.onBeforeRequest.addListener(
     async function(details) {
@@ -64,16 +76,15 @@ browser.webRequest.onBeforeRequest.addListener(
     ["blocking"]
 );
 
-
 function filtrarSet(set, urlPrincipal) {
   const resultado = new Set();
   
   // Itera sobre os elementos do conjunto
   for (const url of set) {
-    console.log ("FILTRAR SET")
-    console.log(urlPrincipal)
-    console.log(url)
-    console.log(url.startsWith(urlPrincipal))
+    // console.log ("FILTRAR SET")
+    // console.log(urlPrincipal)
+    // console.log(url)
+    // console.log(url.startsWith(urlPrincipal))
       // Verifica se a URL não começa com a URL principal
       if (!url.startsWith(urlPrincipal)) {
           // Adiciona a URL ao conjunto resultado
@@ -84,28 +95,21 @@ function filtrarSet(set, urlPrincipal) {
   return resultado;
 }
 
-
-// Listener para mensagens do popup.js
 browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-  // Se a mensagem for para obter os sites de terceiros capturados, responde com a lista de sites
   if (request.action == "getCapturedSites") {
-    console.log(thirdPartySites )
     newurl = trataUrl(urlPrincipal)
     resultado = filtrarSet(thirdPartySites, newurl);
     sendResponse({sites: resultado});
     limpar = true;
-  }else if (request.action == "getCookies"){
-    rowser.tabs.query({active: true, currentWindow: true}, function(tabs) {
-      if (tabs.length > 0) {
-        console.log("nuiasdbnashukbdsaiubndhsanildsanjkldnasjldnjiq")
-        getCookies(tabs[0].id, sendResponse);
-      } else {
-        sendResponse({error: "No active tab found"});
-      }
+  } else if (request.action == "getCookies") {
+    newurl = trataUrl(urlPrincipal);
+    getCookies(newurl, function(cookieDetails) {
+      console.log(cookieDetails);
+      sendResponse({cookies: cookieDetails});
     });
+    // Importante retornar true para manter a conexão com sendResponse aberta
     return true;
-  }
-  else if (request.action === "getStorage") {
+  } else if (request.action === "getStorage") {
     browser.tabs.query({active: true, currentWindow: true}, function(tabs) {
       if (tabs.length > 0) {
         checkStorage(tabs[0].id, sendResponse);
@@ -113,10 +117,10 @@ browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         sendResponse({error: "No active tab found"});
       }
     });
+    // Importante retornar true para manter a conexão com sendResponse aberta
     return true;
   }
 });
-
 
 
 function getUrl() {
@@ -129,9 +133,6 @@ function getUrl() {
         }
     });
 };
-
-
-
 function trataUrl(url) {
   // Encontra a posição de "://"
   const indiceDoisPontosBarra = url.indexOf("://");
@@ -144,9 +145,10 @@ function trataUrl(url) {
     // Extrai a parte da string até a primeira barra após "://"
     const parteUrl = indiceBarra !== -1 ? url.substring(0, indiceBarra) : url;
 
-    console.log(parteUrl); // Output: "https://chat.openai.com"
+    // console.log(parteUrl); // Output: "https://chat.openai.com"
     return parteUrl;
   } else {
     console.log("Formato de URL inválido");
   }
 }
+

@@ -8,10 +8,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
   // Envia a mensagem para o script de fundo pedindo pelos cookies
-  browser.runtime.sendMessage({action: "getCookies"}, function(response) {
-    // Recebe a resposta com os sites de terceiros capturados e os exibe na página HTML
-    document.getElementById("cookieNum").textContent = "Esse é o número de cookies injetados : " + response.cookies;
-  });
 
 });
 
@@ -43,7 +39,20 @@ document.addEventListener('DOMContentLoaded', function() {
 //     }
 //   });
 // });
-//
+
+document.addEventListener('DOMContentLoaded', function() {
+
+browser.runtime.sendMessage({action: "getCookies"}, function(response) {
+
+  console.log(response)
+  
+  // Recebe a resposta com os sites de terceiros capturados e os exibe na página HTML
+  document.getElementById("cookieNum").textContent = "Esse é o número de cookies injetados : " + response.cookies;
+});
+
+});
+
+
 document.addEventListener('DOMContentLoaded', function() {
   browser.tabs.query({active: true, currentWindow: true}, function(tabs) {
     browser.tabs.executeScript(tabs[0].id, {
