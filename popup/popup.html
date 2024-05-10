@@ -19,7 +19,6 @@
       margin-bottom: 5px;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
 </head>
 <body>
 
@@ -47,9 +46,6 @@
   
   <div class="secao" id="secao2">Cookies</div>
   <div id="conteudo2" class="conteudo">
-    <p>Conteúdo da seção 2</p>
-    <p id ="cookieNum"> </p>
-    <button id="countButton">Contar Cookies</button>
     <p id="cookieCount">Contagem de Cookies: </p>
     <div id="cookieSite">Número de itens salvos no localstorage : </div>
     <div id="cookieTerceitos">Número de itens salvos no sessionstorage : </div>
@@ -59,20 +55,18 @@
   
   <div class="secao" id="secao3">Local Storage</div>
   <div id="conteudo3" class="conteudo">
-    <p>Conteúdo da seção 3</p>
     <div id="numeroLocalStorage">Número de itens salvos no localstorage : </div>
     <div id="numeroSessionStorage">Número de itens salvos no sessionstorage : </div>
+  </div>
 
-
-
+  <div class="secao" id="secao4">Canva FingerPrint</div>
+  <div id="conteudo4" class="conteudo">
+    <div id="canvasFingerprint"></div>
   </div>
   
   <script src="toggle.js"></script>
   <script src="popup.js"></script>
   <script src="localstorage.js"></script>
-  Pyodide test page <br>
-  Open your browser console to see Pyodide output
-  <script src="teste.js"> </script>
 
 
 

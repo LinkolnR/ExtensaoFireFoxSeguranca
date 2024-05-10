@@ -3,7 +3,7 @@ var thirdPartySites = new Set();
 var cookies ;
 var localStorage = {};
 var urlPrincipal;
-
+// Função para verificar o local storage e o session storage
 function checkStorage(tabId, sendResponse) {
   browser.tabs.executeScript(tabId, {
     code: `({
@@ -18,6 +18,7 @@ function checkStorage(tabId, sendResponse) {
     }
   });
 }
+// Função para obter os cookies
 function getCookies(url, callback) {
   chrome.cookies.getAll({}, function(cookies) {
     const cookieDetails = {
@@ -65,9 +66,9 @@ browser.webRequest.onBeforeRequest.addListener(
         }
 
         // Verifica se o domínio da requisição é o mesmo que o da aba atual
-        if (details.url === url) {
+        if (details.url === details.originUrl) {
             console.log("A URL da requisição é a mesma que a da aba atual: ", details.url);
-        } else if (!details.url.startsWith(url)) {
+        } else if (!details.url.startsWith(details.originUrl)) {
             // Adiciona o site de terceiros ao conjunto
             thirdPartySites.add(details.url);
         }
@@ -95,6 +96,23 @@ function filtrarSet(set, urlPrincipal) {
   return resultado;
 }
 
+function getCanvasFingerprint () {
+  var canvas = document.createElement('canvas');
+  var ctx = canvas.getContext('2d');
+  // https://www.browserleaks.com/canvas#how-does-it-work
+  var txt = 'CANVAS_FINGERPRINT';
+  ctx.textBaseline = "top";
+  ctx.font = "14px 'Arial'";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = "#f60";
+  ctx.fillRect(125,1,62,20);
+  ctx.fillStyle = "#069";
+  ctx.fillText(txt, 2, 15);
+  ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
+  ctx.fillText(txt, 4, 17);
+  return canvas.toDataURL();
+}
+
 browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.action == "getCapturedSites") {
     newurl = trataUrl(urlPrincipal)
@@ -104,11 +122,10 @@ browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   } else if (request.action == "getCookies") {
     newurl = trataUrl(urlPrincipal);
     getCookies(newurl, function(cookieDetails) {
-      console.log(cookieDetails);
+      // console.log(cookieDetails);
       sendResponse({cookies: cookieDetails});
     });
     // Importante retornar true para manter a conexão com sendResponse aberta
-    return true;
   } else if (request.action === "getStorage") {
     browser.tabs.query({active: true, currentWindow: true}, function(tabs) {
       if (tabs.length > 0) {
@@ -118,8 +135,10 @@ browser.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       }
     });
     // Importante retornar true para manter a conexão com sendResponse aberta
-    return true;
+  } else if (request.action === "getCanvasFingerprint"){
+    sendResponse({canvasFingerprint: getCanvasFingerprint()});
   }
+  return true;
 });
 
 
